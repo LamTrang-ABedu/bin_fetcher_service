@@ -1,0 +1,93 @@
+{% extends "index.html" %}
+{% block title %}BIN Checker{% endblock %}
+{% block content %}
+<h2>BIN Checker</h2>
+
+<div class="input-row">
+  <input class="input-email" type="text" id="binSearch" placeholder="Enter BIN, Bank or Country">
+  <button class="input-button" onclick="searchBin()">Search</button>
+  <button class="input-button" onclick="refreshBin()">Refresh BIN Cache</button>
+</div>
+
+<table id="binTable" style="display:none">
+  <thead>
+    <tr>
+      <th>BIN</th>
+      <th>Bank</th>
+      <th>Type</th>
+      <th>Country</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<button id="loadMore" class="input-button" style="display:none" onclick="renderBinTable()">Load More</button>
+
+<script>
+let cachedBins = [];
+let currentIndex = 0;
+const PAGE_SIZE = 50;
+
+async function loadBinCache() {
+  const res = await fetch('/api/binlist');
+  const data = await res.json();
+  if (data.status !== 'ok') {
+    alert('Failed to load BIN data!');
+    return;
+  }
+  cachedBins = data.bins;
+  currentIndex = 0;
+  document.getElementById('binTable').style.display = 'table';
+  renderBinTable();
+}
+
+function renderBinTable() {
+  const tbody = document.querySelector('#binTable tbody');
+  const end = Math.min(currentIndex + PAGE_SIZE, cachedBins.length);
+  for (let i = currentIndex; i < end; i++) {
+    const bin = cachedBins[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${bin.bin}</td>
+      <td>${bin.bank}</td>
+      <td>${bin.type}</td>
+      <td>${bin.country}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  currentIndex = end;
+  if (currentIndex >= cachedBins.length) {
+    document.getElementById('loadMore').style.display = 'none';
+  } else {
+    document.getElementById('loadMore').style.display = 'block';
+  }
+}
+
+function searchBin() {
+  const keyword = document.getElementById('binSearch').value.trim().toLowerCase();
+  const filtered = cachedBins.filter(bin =>
+    bin.bin.includes(keyword) ||
+    (bin.bank && bin.bank.toLowerCase().includes(keyword)) ||
+    (bin.country && bin.country.toLowerCase().includes(keyword))
+  );
+  currentIndex = 0;
+  cachedBins = filtered;
+  document.querySelector('#binTable tbody').innerHTML = '';
+  renderBinTable();
+}
+
+async function refreshBin() {
+  if (!confirm('Are you sure you want to refresh the BIN cache?')) return;
+  const res = await fetch('/api/refresh-bin');
+  const data = await res.json();
+  if (data.status === 'ok') {
+    alert('BIN Cache refreshed! Reloading...');
+    loadBinCache();
+  } else {
+    alert('Failed to refresh BIN cache.');
+  }
+}
+
+loadBinCache();
+</script>
+{% endblock %}
