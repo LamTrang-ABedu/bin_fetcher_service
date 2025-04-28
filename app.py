@@ -1,30 +1,25 @@
-from flask import Flask, render_template, request, jsonify
-import json
-import os
-from utils.bin_fetcher import generate_bin_cache
+from flask import Flask, jsonify
+from crawler_bin import auto_crawl_and_upload
 
 app = Flask(__name__)
 
-@app.route('/binlist')
-def binlist_page():
-    return render_template('binlist_view.html')
+@app.route('/')
+def index():
+    return 'HopeHub BIN Crawler is running!'
 
-@app.route('/api/binlist')
-def api_binlist():
-    try:
-        with open('static/cache/bins_cache.json', 'r', encoding='utf-8') as f:
-            bins = json.load(f)
-        return jsonify({'status': 'ok', 'bins': bins})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
-
-@app.route('/api/refresh-bin')
-def api_refresh_bin():
-    try:
-        generate_bin_cache()
-        return jsonify({'status': 'ok', 'message': 'BIN cache refreshed successfully!'})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
+@app.route('/api/force-crawl-bin')
+def force_crawl_bin():
+    auto_crawl_and_upload()
+    return jsonify({"status": "success", "message": "Manual crawl triggered."})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    from threading import Thread
+    import time
+
+    def scheduler():
+        while True:
+            auto_crawl_and_upload()
+            time.sleep(4 * 3600)  # mỗi 4 giờ tự crawl lại
+
+    Thread(target=scheduler, daemon=True).start()
+    app.run(host="0.0.0.0", port=5000)
