@@ -2,3 +2,4 @@ Flask
 boto3
 requests
 bs4
+python-dotenv
