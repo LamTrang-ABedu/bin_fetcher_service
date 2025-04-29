@@ -1,16 +1,22 @@
-def generate_full_card(bin_code):
-    import random
+import random
 
-    while True:
-        card = bin_code + ''.join(str(random.randint(0,9)) for _ in range(9))
-        total = 0
-        reverse_digits = card[::-1]
-        for i, d in enumerate(reverse_digits):
-            n = int(d)
-            if i % 2 == 1:
-                n *= 2
-                if n > 9:
-                    n -= 9
-            total += n
-        if total % 10 == 0:
-            return card
+def generate_full_card(bin_code):
+    card_number = bin_code
+    while len(card_number) < 15:
+        card_number += str(random.randint(0, 9))
+    checksum = get_luhn_checksum(card_number)
+    card_number += str(checksum)
+    expiry = f"{random.randint(1,12):02d}/{random.randint(24,29)}"
+    cvv = f"{random.randint(100,999)}"
+    return {
+        'card_number': card_number,
+        'expiry': expiry,
+        'cvv': cvv
+    }
+
+def get_luhn_checksum(number):
+    digits = [int(d) for d in reversed(number)]
+    total = sum(digits[::2])
+    for d in digits[1::2]:
+        total += sum(divmod(2*d, 10))
+    return (10 - (total % 10)) % 10
