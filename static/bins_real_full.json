@@ -1,0 +1,23 @@
+[
+  {
+    "bin": "360218",
+    "bank": "Unknown",
+    "country": "Ecuador",
+    "type": "credit",
+    "full_card": "360218810202723"
+  },
+  {
+    "bin": "371241",
+    "bank": "Unknown",
+    "country": "United States of America (the)",
+    "type": "credit",
+    "full_card": "371241794070103"
+  },
+  {
+    "bin": "370245",
+    "bank": "Unknown",
+    "country": "Unknown",
+    "type": "Unknown",
+    "full_card": "370245050680621"
+  }
+]
